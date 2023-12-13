@@ -31,25 +31,29 @@ end
 % b. Divide the dataset into training and test datasets, cross-validation
 % and k-fold
 trainRatio = 0.75; % 75% training data
-
+kValues = [4, 5, 6, 7, 8];
 folds = 5;
 
-c = cvpartition(labels, "KFold", folds);
+% change folds to relevant K value and then put into loop
 
 % c. Creating NN
 net = fitnet([60,30], 'trainFcn', 'trainscg');
-net.trainParam.max_fail = 100;
-for i = 1:folds
-    XTrain = table2array(digitTable(training(c, i),:));
-    YTrain = labels(training(c, i));
-    XTest = table2array(digitTable(test(c, i),:));
-    YTest = labels(test(c, i));
-
-    net = train(net, XTrain', YTrain');
-
-    pred = round(sim(net, XTest'));
-    accuracy = sum(YTest == pred') / numel(YTest);
-    fprintf('Accuracy: %.2f%%\n', accuracy * 100);
+net.trainParam.max_fail = 50;
+for k = 1:numel(kValues)
+ 
+    for i = 1:kValues(k)
+        c = cvpartition(labels, "KFold", kValues(k));
+        XTrain = table2array(digitTable(training(c, i),:));
+        YTrain = labels(training(c, i));
+        XTest = table2array(digitTable(test(c, i),:));
+        YTest = labels(test(c, i));
     
+        net = train(net, XTrain', YTrain');
+    
+        pred = round(sim(net, XTest'));
+        accuracy = sum(YTest == pred') / numel(YTest); % Number of correct predictions / Total number of labels
+        fprintf('Maximum folds: %d, Fold number: %d, Accuracy: %.2f%%\n', kValues(k), i, accuracy * 100); % *100 to display as percentage
+        
+    end
 end
 
