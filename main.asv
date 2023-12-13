@@ -38,7 +38,7 @@ c = cvpartition(labels, "KFold", folds);
 
 % c. Creating NN
 net = fitnet([60,30], 'trainFcn', 'trainscg');
-net.trainParam.max_fail = 100;
+net.trainParam.max_fail = 1000;
 for i = 1:folds
     XTrain = table2array(digitTable(training(c, i),:));
     YTrain = labels(training(c, i));
