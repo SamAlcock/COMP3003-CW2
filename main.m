@@ -49,8 +49,8 @@ for k = 1:numel(kValues)
     
         net = train(net, XTrain', YTrain');
 
-        pred = round(sim(net, XTest'));
-        accuracy = sum(YTest == pred') / numel(YTest); % Number of correct predictions / Total number of labels
+        pred = sim(net, XTest');
+        accuracy = sum(YTest == round(pred')) / numel(YTest); % Number of correct predictions / Total number of labels
         currAccuracies(i) = accuracy;
         fprintf('Maximum folds: %d, Fold number: %d, Accuracy: %.2f%%\n', kValues(k), i, accuracy * 100); % *100 to display as percentage
         
@@ -75,7 +75,11 @@ title('Accuracy of Neural Network for different K-Folds');
 ylim([0.5, 1]);
 
 % Plotting ROC curve
-
 figure;
-plotroc(YTest', scores);
+plotroc(YTest', pred);
 title('ROC Curve for Neural network for different K-Folds')
+
+% Plotting Confusion Matrix
+figure;
+c = confusionmat(YTest, round(pred'));
+confusionchart(c);
