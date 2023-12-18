@@ -31,7 +31,7 @@ end
 % b. Divide the dataset into training and test datasets, cross-validation
 % and k-fold
 trainRatio = 0.75; % 75% training data
-kValues = [4, 5];
+kValues = [4, 5, 6];
 
 % c. Creating NN
 net = fitnet([60,30], 'trainFcn', 'trainscg');
@@ -48,7 +48,7 @@ for k = 1:numel(kValues)
         YTest = labels(test(c, i));
     
         net = train(net, XTrain', YTrain');
-
+    
         pred = round(sim(net, XTest'));
         accuracy = sum(YTest == pred') / numel(YTest); % Number of correct predictions / Total number of labels
         currAccuracies(i) = accuracy;
@@ -66,16 +66,15 @@ for i = 1:length(kValues)
     kValLegend(i) = num2str(kValues(i));
 end
 
-formatAcc = accuracies(:);
-b = bar(formatAcc);
-set(gca, 'XTickLabel', kValLegend)
+
+b = bar(accuracies);
 xlabel('Number of Folds');
 ylabel('Average Accuracy (%)');
 title('Accuracy of Neural Network for different K-Folds');
 ylim([0.5, 1]);
 
-% Plotting ROC curve
+legend(kValLegend);
 
-figure;
-plotroc(YTest', scores);
-title('ROC Curve for Neural network for different K-Folds')
+for i = 1:numel(b)
+    set(b(i), 'XData', get(b(i), 'XData') + kValLegend(i));
+end
