@@ -5,10 +5,13 @@ clear;
 
 % a. Loading data and preprocessing
 digitTable = readtable('handwritten_digits.csv', 'Headerlines', 1);
+totalNums = height(digitTable);
+
+digitTable = digitTable(randperm(totalNums), :);
 labels = table2array(digitTable(:, 65));
 digitTable(:, 65) = [];
 
-totalNums = height(digitTable);
+
 allDigits = zeros(8,8,totalNums); % 3D matrix for all digits
 figure;
 for i = 1 : 20 % size (digitTable, 1)
@@ -31,10 +34,10 @@ end
 % b. Divide the dataset into training and test datasets, cross-validation
 % and k-fold
 trainRatio = 0.75; % 75% training data
-kValues = [4, 5];
+kValues = [4, 5, 16];
 
 % c. Creating NN
-net = fitnet([60,30], 'trainFcn', 'trainscg');
+net = fitnet([30,20,10], 'trainFcn', 'trainscg');
 net.trainParam.max_fail = 50;
 accuracies = zeros(1, length(kValues));
 for k = 1:numel(kValues)
@@ -83,3 +86,27 @@ title('ROC Curve for Neural network for different K-Folds')
 figure;
 c = confusionmat(YTest, round(pred'));
 confusionchart(c);
+
+
+% d. Naive Bayes Classifier
+
+for k = 1:numel(kValues)
+        currAccuracies = zeros(1, kValues(k));
+    for i = 1:kValues(k)
+        
+        c = cvpartition(labels, "KFold", kValues(k));
+        XTrain = table2array(digitTable(training(c, i),:));
+        YTrain = labels(training(c, i));
+        XTest = table2array(digitTable(test(c, i),:));
+        YTest = labels(test(c, i));
+    
+        cnb = fitcnb(XTrain', YTrain');
+
+        cnbPred = predict(cnb, XTest');
+
+        accuracy = sum(YTest == round(pred')) / numel(YTest); % Number of correct predictions / Total number of labels
+        currAccuracies(i) = accuracy;
+        fprintf('Maximum folds: %d, Fold number: %d, Accuracy: %.2f%%\n', kValues(k), i, accuracy * 100); % *100 to display as percentage
+        
+    end
+end
