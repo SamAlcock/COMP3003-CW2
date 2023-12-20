@@ -34,7 +34,7 @@ end
 % b. Divide the dataset into training and test datasets, cross-validation
 % and k-fold
 trainRatio = 0.75; % 75% training data
-kValues = [2];
+kValues = [4,6];
 
 % c. Creating NN
 
@@ -43,7 +43,7 @@ for k = 1:numel(kValues)
         currAccuracies = zeros(1, kValues(k));
     for i = 1:kValues(k)
         net = fitnet([64,32,16], 'trainFcn', 'trainscg');
-        net.trainParam.max_fail = 50;
+        net.trainParam.max_fail = 25;
         c = cvpartition(labels, "KFold", kValues(k));
         XTrain = table2array(digitTable(training(c, i),:));
         YTrain = labels(training(c, i));
@@ -53,7 +53,7 @@ for k = 1:numel(kValues)
         net = train(net, XTrain', YTrain');
 
         pred = sim(net, XTest');
-        accuracy = sum(YTest == round(pred')) / numel(YTest); % Number of correct predictions / Total number of labels
+        accuracy = sum(YTest == round(pred')) / numel(YTest); % Number of correct predictions / Total number of labels  
         currAccuracies(i) = accuracy;
         fprintf('Maximum folds: %d, Fold number: %d, Accuracy: %.2f%%\n', kValues(k), i, accuracy * 100); % *100 to display as percentage
         
@@ -89,9 +89,9 @@ confusionchart(c);
 
 
 % d. Naive Bayes Classifier
-
+cnbAccuracies = zeros(1, length(kValues));
 for k = 1:numel(kValues)
-        currAccuracies = zeros(1, kValues(k));
+        currAccuraciesCnb = zeros(1, kValues(k));
     for i = 1:kValues(k)
         
         c = cvpartition(labels, "KFold", kValues(k));
@@ -100,13 +100,37 @@ for k = 1:numel(kValues)
         XTest = table2array(digitTable(test(c, i),:));
         YTest = labels(test(c, i));
     
-        cnb = fitcnb(XTrain, YTrain,);
+        cnb = fitcnb(XTrain, YTrain, "DistributionNames", "mn");
 
-        cnbPred = predict(cnb, XTest');
+        cnbPred = predict(cnb, XTest);
 
-        accuracy = sum(YTest == round(cnbPred')) / numel(YTest); % Number of correct predictions / Total number of labels
-        currAccuracies(i) = accuracy;
-        fprintf('Maximum folds: %d, Fold number: %d, Accuracy: %.2f%%\n', kValues(k), i, accuracy * 100); % *100 to display as percentage
+        cnbAccuracy = sum(YTest == round(cnbPred)) / numel(YTest); % Number of correct predictions / Total number of labels
+        currAccuraciesCnb(i) = cnbAccuracy;
+        fprintf('Maximum folds: %d, Fold number: %d, Accuracy: %.2f%%\n', kValues(k), i, cnbAccuracy * 100); % *100 to display as percentage
         
     end
 end
+
+% Plotting average accuracy for each fold
+figure;
+
+
+formatAcc = cnbAccuracies(:);
+b = bar(formatAcc);
+set(gca, 'XTickLabel', kValLegend)
+xlabel('Number of Folds');
+ylabel('Average Accuracy (%)');
+title('Accuracy of Neural Network for different K-Folds');
+ylim([0.5, 1]);
+
+% Plotting ROC curve
+figure;
+plotroc(YTest', cnbPred);
+title('ROC Curve for Neural network for different K-Folds')
+
+% Plotting Confusion Matrix
+figure;
+c = confusionmat(YTest, round(cnbPred'));
+confusionchart(c);
+
+

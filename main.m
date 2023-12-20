@@ -34,7 +34,7 @@ end
 % b. Divide the dataset into training and test datasets, cross-validation
 % and k-fold
 trainRatio = 0.75; % 75% training data
-kValues = [4,6,8];
+kValues = [4,6];
 
 % c. Creating NN
 
@@ -43,7 +43,7 @@ for k = 1:numel(kValues)
         currAccuracies = zeros(1, kValues(k));
     for i = 1:kValues(k)
         net = fitnet([64,32,16], 'trainFcn', 'trainscg');
-        net.trainParam.max_fail = 50;
+        net.trainParam.max_fail = 25;
         c = cvpartition(labels, "KFold", kValues(k));
         XTrain = table2array(digitTable(training(c, i),:));
         YTrain = labels(training(c, i));
@@ -58,7 +58,6 @@ for k = 1:numel(kValues)
         fprintf('Maximum folds: %d, Fold number: %d, Accuracy: %.2f%%\n', kValues(k), i, accuracy * 100); % *100 to display as percentage
         
     end
-    disp(currAccuracies);
     accuracies(k) = mean(currAccuracies(:));
 end
 
@@ -80,16 +79,18 @@ ylim([0.5, 1]);
 % Plotting ROC curve
 figure;
 plotroc(YTest', pred);
-title('ROC Curve for Neural network for different K-Folds')
+title('ROC Curve for Neural network for different K-Folds');
 
 % Plotting Confusion Matrix
 figure;
 c = confusionmat(YTest, round(pred'));
 confusionchart(c);
+title('Confusion Matrix for Naive Bayes for different K-Folds');
+
 
 
 % d. Naive Bayes Classifier
-
+cnbAccuracies = zeros(1, length(kValues));
 for k = 1:numel(kValues)
         currAccuraciesCnb = zeros(1, kValues(k));
     for i = 1:kValues(k)
@@ -106,7 +107,33 @@ for k = 1:numel(kValues)
 
         cnbAccuracy = sum(YTest == round(cnbPred)) / numel(YTest); % Number of correct predictions / Total number of labels
         currAccuraciesCnb(i) = cnbAccuracy;
-        fprintf('Maximum folds: %d, Fold number: %d, Accuracy: %.2f%%\n', kValues(k), i, accuracy * 100); % *100 to display as percentage
+        fprintf('Maximum folds: %d, Fold number: %d, Accuracy: %.2f%%\n', kValues(k), i, cnbAccuracy * 100); % *100 to display as percentage
         
     end
+    cnbAccuracies(k) = mean(currAccuraciesCnb(:));
 end
+
+% Plotting average accuracy for each fold
+figure;
+
+
+formatAcc = cnbAccuracies(:);
+b = bar(formatAcc);
+set(gca, 'XTickLabel', kValLegend)
+xlabel('Number of Folds');
+ylabel('Average Accuracy (%)');
+title('Accuracy of Naive Bayes for different K-Folds');
+ylim([0.5, 1]);
+
+% Plotting ROC curve
+figure;
+plotroc(YTest', cnbPred');
+title('ROC Curve for Naive Bayes for different K-Folds');
+
+% Plotting Confusion Matrix
+figure;
+c = confusionmat(YTest, round(cnbPred'));
+confusionchart(c);
+title('Confusion Matrix for Naive Bayes for different K-Folds');
+
+
