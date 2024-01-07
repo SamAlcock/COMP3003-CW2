@@ -6,7 +6,6 @@ clear;
 % a. Loading data and preprocessing
 digitTable = readtable('handwritten_digits.csv', 'Headerlines', 1);
 totalNums = height(digitTable);
-
 digitTable = digitTable(randperm(totalNums), :);
 labels = table2array(digitTable(:, 65));
 digitTable(:, 65) = [];
@@ -28,28 +27,28 @@ for i = 1 : 20 % size (digitTable, 1)
 
 end
 
-
-
-
 % b. Divide the dataset into training and test datasets, cross-validation
 % and k-fold
 trainRatio = 0.75; % 75% training data
-kValues = [4,6];
+kValues = [2];
 
 % c. Creating NN
 
 accuracies = zeros(1, length(kValues));
+allPred = zeros(numel(kValues), length(labels));
 for k = 1:numel(kValues)
-        currAccuracies = zeros(1, kValues(k));
+    currAccuracies = zeros(1, kValues(k));
     for i = 1:kValues(k)
-        net = fitnet([64,32,16], 'trainFcn', 'trainscg');
-        net.trainParam.max_fail = 25;
+
+        net = patternnet([10, 8, 6],'trainlm'); % 10 8 8
+        net.trainParam.max_fail = 100;
         c = cvpartition(labels, "KFold", kValues(k));
         XTrain = table2array(digitTable(training(c, i),:));
         YTrain = labels(training(c, i));
         XTest = table2array(digitTable(test(c, i),:));
         YTest = labels(test(c, i));
-    
+        
+        net.performFcn = 'mse';
         net = train(net, XTrain', YTrain');
 
         pred = sim(net, XTest');
@@ -77,8 +76,16 @@ title('Accuracy of Neural Network for different K-Folds');
 ylim([0.5, 1]);
 
 % Plotting ROC curve
+roclabels = zeros(length(pred), 1);
+for i = 1:length(pred)'
+    if round(pred(i)') == YTest(i)
+        roclabels(i) = 1;
+    end
+end
 figure;
-plotroc(YTest', pred);
+[x, y, ~, ~] =  perfcurve(roclabels, YTest, 1);
+plot(x,y);
+%plotroc(YTest', pred);
 title('ROC Curve for Neural network for different K-Folds');
 
 % Plotting Confusion Matrix
