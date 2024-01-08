@@ -58,7 +58,6 @@ for k = 1:numel(kValues)
         
     end
     accuracies(k) = mean(currAccuracies(:));
-    allPred{k} = pred;
 end
 
 % Plotting average accuracy for each fold
@@ -76,22 +75,6 @@ ylabel('Average Accuracy (%)');
 title('Accuracy of Neural Network for different K-Folds');
 ylim([0.5, 1]);
 
-% Plotting ROC curve
-roclabels = zeros(length(allPred), 1);
-for i = 1:size(allPred, 1)
-    for j = 1:size(allPred, 2)
-        if round(allPred(i, j)) == YTest(i)
-            roclabels(i, j) = 1;
-        end
-    end
-
-end
-figure;
-[x, y, ~, ~] =  perfcurve(roclabels, YTest, 1);
-plot(x, y);
-
-title('ROC Curve for Neural network for different K-Folds');
-
 % Plotting Confusion Matrix
 figure;
 c = confusionmat(YTest, round(pred'));
@@ -100,15 +83,15 @@ title('Confusion Matrix for Naive Bayes for different K-Folds');
 
 % F1 score
 
-classesNum = size(C, 1);
+classesNum = size(c, 1);
 precision = zeros(1, classesNum);
 recall = zeros(1, classesNum);
 f1Score = zeros(1, classesNum);
 
 for i = 1:classesNum
 
-    precision(i) = C(i, i) / sum(C(:, i));
-    recall(i) = C(i, i) / sum(C(i, :));
+    precision(i) = c(i, i) / sum(c(:, i));
+    recall(i) = c(i, i) / sum(c(i, :));
     f1Score(i) = 2 * (precision(i) * recall(i)) / (precision(i) + recall(i));
 
 end
@@ -150,17 +133,6 @@ ylabel('Average Accuracy (%)');
 title('Accuracy of Naive Bayes for different K-Folds');
 ylim([0.5, 1]);
 
-% Plotting ROC curve
-roclabels = zeros(length(pred), 1);
-for i = 1:length(pred)'
-    if round(pred(i)') == YTest(i)
-        roclabels(i) = 1;
-    end
-end
-figure;
-[x, y, ~, ~] =  perfcurve(roclabels, YTest, 1);
-plot(x,y);
-title('ROC Curve for Naive Bayes for different K-Folds');
 
 % Plotting Confusion Matrix
 figure;
@@ -168,4 +140,29 @@ c = confusionmat(YTest, round(cnbPred'));
 confusionchart(c);
 title('Confusion Matrix for Naive Bayes for different K-Folds');
 
+% F1 score
+
+classesNum = size(c, 1);
+precision = zeros(1, classesNum);
+recall = zeros(1, classesNum);
+f1Score = zeros(1, classesNum);
+
+for i = 1:classesNum
+
+    precision(i) = c(i, i) / sum(c(:, i));
+    recall(i) = c(i, i) / sum(c(i, :));
+    f1Score(i) = 2 * (precision(i) * recall(i)) / (precision(i) + recall(i));
+
+end
+totalF1ScoreNB = mean(f1Score)
+
+% Plotting F1 scores
+figure;
+formatF1 = [totalF1ScoreNN, totalF1ScoreNB]
+b = bar(formatF1);
+set(gca, 'XTickLabel', kValLegend)
+xlabel('Number of Folds');
+ylabel('F1 Score');
+title('F1 of Naive Bayes for different K-Folds');
+ylim([0.5, 1]);
 
