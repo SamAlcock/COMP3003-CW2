@@ -58,7 +58,6 @@ for k = 1:numel(kValues)
         
     end
     accuracies(k) = mean(currAccuracies(:));
-    allPred{k} = pred;
 end
 
 % Plotting average accuracy for each fold
@@ -80,8 +79,8 @@ ylim([0.5, 1]);
 roclabels = zeros(length(allPred), 1);
 for i = 1:size(allPred, 1)
     for j = 1:size(allPred, 2)
-        if round(allPred(i, j)) == YTest(i)
-            roclabels(i, j) = 1;
+        if round(pred(i, j)) == YTest(i)
+            roclabels(i) = 1;
         end
     end
 
@@ -98,21 +97,7 @@ c = confusionmat(YTest, round(pred'));
 confusionchart(c);
 title('Confusion Matrix for Naive Bayes for different K-Folds');
 
-% F1 score
 
-classesNum = size(C, 1);
-precision = zeros(1, classesNum);
-recall = zeros(1, classesNum);
-f1Score = zeros(1, classesNum);
-
-for i = 1:classesNum
-
-    precision(i) = C(i, i) / sum(C(:, i));
-    recall(i) = C(i, i) / sum(C(i, :));
-    f1Score(i) = 2 * (precision(i) * recall(i)) / (precision(i) + recall(i));
-
-end
-totalF1ScoreNN = mean(f1Score)
 
 % d. Naive Bayes Classifier
 cnbAccuracies = zeros(1, length(kValues));
