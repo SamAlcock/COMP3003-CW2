@@ -73,7 +73,7 @@ set(gca, 'XTickLabel', kValLegend)
 xlabel('Number of Folds');
 ylabel('Average Accuracy (%)');
 title('Accuracy of Neural Network for different K-Folds');
-ylim([0.5, 1]);
+ylim([0.3, 1]);
 
 % Plotting Confusion Matrix
 figure;
@@ -131,7 +131,7 @@ set(gca, 'XTickLabel', kValLegend)
 xlabel('Number of Folds');
 ylabel('Average Accuracy (%)');
 title('Accuracy of Naive Bayes for different K-Folds');
-ylim([0.5, 1]);
+ylim([0.7, 1]);
 
 
 % Plotting Confusion Matrix
@@ -154,15 +154,16 @@ for i = 1:classesNum
     f1Score(i) = 2 * (precision(i) * recall(i)) / (precision(i) + recall(i));
 
 end
-totalF1ScoreNB = mean(f1Score)
+totalF1ScoreNB = mean(f1Score);
 
 % Plotting F1 scores
 figure;
-formatF1 = [totalF1ScoreNN, totalF1ScoreNB]
+formatF1 = [totalF1ScoreNN, totalF1ScoreNB];
 b = bar(formatF1);
-set(gca, 'XTickLabel', kValLegend)
-xlabel('Number of Folds');
+f1Legend = {'Neural Network', 'Naive Bayes'};
+set(gca, 'XTick', 1:numel(f1Legend), 'XTickLabel', f1Legend);
+xlabel('Model');
 ylabel('F1 Score');
-title('F1 of Naive Bayes for different K-Folds');
-ylim([0.5, 1]);
+title('Comparing F1 Score when folds = ', num2str(kValues(end)));
+ylim([0, 1]);
 
